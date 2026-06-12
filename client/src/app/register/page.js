@@ -30,7 +30,12 @@ import {
 
 const registerSchema = z
   .object({
-    email: z.string().min(1, "Email is required").email("Please enter a valid email"),
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
+    email: z
+      .string()
+      .min(1, "Email is required")
+      .email("Please enter a valid email"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string().min(1, "Repeat password is required"),
   })
@@ -38,6 +43,14 @@ const registerSchema = z
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
+
+function getAuthErrorMessage(error) {
+  return (
+    error?.response?.data?.message ||
+    error?.message ||
+    "Registration failed. Please try again."
+  );
+}
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -53,6 +66,8 @@ export default function RegisterPage() {
   } = useForm({
     resolver: zodResolver(registerSchema),
     defaultValues: {
+      firstName: "",
+      lastName: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -65,8 +80,8 @@ export default function RegisterPage() {
       dispatch(setError(null));
 
       const data = await registerUser(
-        "",
-        "",
+        formData.firstName,
+        formData.lastName,
         formData.email,
         formData.password
       );
@@ -80,12 +95,7 @@ export default function RegisterPage() {
 
       router.push("/feed");
     } catch (error) {
-      dispatch(
-        setError(
-          error?.response?.data?.message ||
-            "Registration failed. Please try again."
-        )
-      );
+      dispatch(setError(getAuthErrorMessage(error)));
     }
   };
 
@@ -98,12 +108,20 @@ export default function RegisterPage() {
 
       <div className="_shape_two">
         <Image src={shapeTwo} alt="" className="_shape_img" />
-        <Image src={darkShapeOne} alt="" className="_dark_shape _dark_shape_opacity" />
+        <Image
+          src={darkShapeOne}
+          alt=""
+          className="_dark_shape _dark_shape_opacity"
+        />
       </div>
 
       <div className="_shape_three">
         <Image src={shapeThree} alt="" className="_shape_img" />
-        <Image src={darkShapeTwo} alt="" className="_dark_shape _dark_shape_opacity" />
+        <Image
+          src={darkShapeTwo}
+          alt=""
+          className="_dark_shape _dark_shape_opacity"
+        />
       </div>
 
       <div className="_social_registration_wrap">
@@ -112,11 +130,18 @@ export default function RegisterPage() {
             <div className="col-xl-8 col-lg-8 col-md-12 col-sm-12">
               <div className="_social_registration_right">
                 <div className="_social_registration_right_image">
-                  <Image src={registrationImage} alt="Registration" priority />
+                  <Image
+                    src={registrationImage}
+                    alt="Registration"
+                    priority
+                  />
                 </div>
 
                 <div className="_social_registration_right_image_dark">
-                  <Image src={registrationDarkImage} alt="Registration" />
+                  <Image
+                    src={registrationDarkImage}
+                    alt="Registration Dark"
+                  />
                 </div>
               </div>
             </div>
@@ -135,14 +160,17 @@ export default function RegisterPage() {
                   Registration
                 </h4>
 
-                {/* <button type="button" className="_social_registration_content_btn _mar_b40">
+                <button
+                  type="button"
+                  className="_social_registration_content_btn _mar_b40"
+                >
                   <Image src={google} alt="Google" className="_google_img" />
                   <span>Register with google</span>
                 </button>
 
                 <div className="_social_registration_content_bottom_txt _mar_b40">
                   <span>Or</span>
-                </div> */}
+                </div>
 
                 {error && (
                   <div className="alert alert-danger py-2 mb-3" role="alert">
@@ -159,13 +187,55 @@ export default function RegisterPage() {
                     <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
                       <div className="_social_registration_form_input _mar_b14">
                         <label className="_social_registration_label _mar_b8">
+                          First Name
+                        </label>
+
+                        <input
+                          type="text"
+                          className="form-control _social_registration_input"
+                          {...register("firstName")}
+                        />
+
+                        {errors.firstName && (
+                          <p className="text-danger small mt-1 mb-0">
+                            {errors.firstName.message}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
+                      <div className="_social_registration_form_input _mar_b14">
+                        <label className="_social_registration_label _mar_b8">
+                          Last Name
+                        </label>
+
+                        <input
+                          type="text"
+                          className="form-control _social_registration_input"
+                          {...register("lastName")}
+                        />
+
+                        {errors.lastName && (
+                          <p className="text-danger small mt-1 mb-0">
+                            {errors.lastName.message}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
+                      <div className="_social_registration_form_input _mar_b14">
+                        <label className="_social_registration_label _mar_b8">
                           Email
                         </label>
+
                         <input
                           type="email"
                           className="form-control _social_registration_input"
                           {...register("email")}
                         />
+
                         {errors.email && (
                           <p className="text-danger small mt-1 mb-0">
                             {errors.email.message}
@@ -179,11 +249,13 @@ export default function RegisterPage() {
                         <label className="_social_registration_label _mar_b8">
                           Password
                         </label>
+
                         <input
                           type="password"
                           className="form-control _social_registration_input"
                           {...register("password")}
                         />
+
                         {errors.password && (
                           <p className="text-danger small mt-1 mb-0">
                             {errors.password.message}
@@ -197,11 +269,13 @@ export default function RegisterPage() {
                         <label className="_social_registration_label _mar_b8">
                           Repeat Password
                         </label>
+
                         <input
                           type="password"
                           className="form-control _social_registration_input"
                           {...register("confirmPassword")}
                         />
+
                         {errors.confirmPassword && (
                           <p className="text-danger small mt-1 mb-0">
                             {errors.confirmPassword.message}
@@ -222,6 +296,7 @@ export default function RegisterPage() {
                           defaultChecked
                           readOnly
                         />
+
                         <label
                           className="form-check-label _social_registration_form_check_label"
                           htmlFor="terms"

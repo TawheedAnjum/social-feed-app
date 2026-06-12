@@ -13,12 +13,18 @@ api.interceptors.response.use(
   (error) => {
     const status = error?.response?.status;
 
-    if (
-      status === 401 &&
-      typeof window !== "undefined" &&
-      !window.location.pathname.startsWith("/login")
-    ) {
-      window.location.href = "/login";
+    if (typeof window !== "undefined" && status === 401) {
+      const pathname = window.location.pathname;
+
+      const isAuthPage =
+        pathname === "/login" || pathname === "/register";
+
+      const isAuthCheckRequest =
+        error?.config?.url === "/api/auth/me";
+
+      if (!isAuthPage && !isAuthCheckRequest) {
+        window.location.href = "/login";
+      }
     }
 
     return Promise.reject(error);

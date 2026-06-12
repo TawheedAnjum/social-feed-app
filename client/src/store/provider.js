@@ -17,16 +17,18 @@ function AuthInitializer({ children }) {
       try {
         const data = await getCurrentUser();
 
-        if (isMounted && data?.user) {
-          dispatch(
-            setCredentials({
-              user: data.user,
-              profile: data.profile || null,
-            })
-          );
+        if (!isMounted || !data?.success || !data?.user) {
+          return;
         }
+
+        dispatch(
+          setCredentials({
+            user: data.user,
+            profile: data.profile || null,
+          })
+        );
       } catch (error) {
-        // User stays logged out.
+        // Silent fail: user stays logged out.
       }
     };
 

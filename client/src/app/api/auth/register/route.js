@@ -2,6 +2,22 @@ import axios from "axios";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
+
+function getErrorPayload(error, fallbackMessage) {
+  const status = error?.response?.status || 500;
+  const data = error?.response?.data;
+
+  return {
+    status,
+    body: {
+      success: false,
+      message: data?.message || fallbackMessage,
+      errors: data?.errors || [],
+    },
+  };
+}
+
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -21,6 +37,7 @@ export async function POST(request) {
     if (!token) {
       return NextResponse.json(
         {
+          success: false,
           message: "Authentication token not received",
         },
         {
@@ -33,12 +50,13 @@ export async function POST(request) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: COOKIE_MAX_AGE,
       path: "/",
     });
 
     return NextResponse.json(
       {
+        success: true,
         user,
         profile,
       },
@@ -47,17 +65,10 @@ export async function POST(request) {
       }
     );
   } catch (error) {
-    const status = error?.response?.status || 500;
+    const { status, body } = getErrorPayload(error, "Registration failed");
 
-    return NextResponse.json(
-      {
-        message:
-          error?.response?.data?.message ||
-          "Registration failed",
-      },
-      {
-        status,
-      }
-    );
+    return NextResponse.json(body, {
+      status,
+    });
   }
 }
