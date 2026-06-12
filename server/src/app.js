@@ -3,25 +3,31 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 
+import authRoutes from "./routes/auth.routes.js";
+import {
+  notFound,
+  errorHandler,
+} from "./middlewares/error.middleware.js";
+
 const app = express();
 
 /**
- * Security middleware
+ * Security
  */
 app.use(helmet());
 
 /**
- * Request logger
+ * Logging
  */
 app.use(morgan("dev"));
 
 /**
- * Body parser
+ * Body Parser
  */
 app.use(express.json());
 
 /**
- * CORS setup
+ * CORS
  */
 app.use(
   cors({
@@ -31,7 +37,7 @@ app.use(
 );
 
 /**
- * Health check route
+ * Health Check
  */
 app.get("/api/health", (req, res) => {
   res.status(200).json({
@@ -41,13 +47,18 @@ app.get("/api/health", (req, res) => {
 });
 
 /**
- * Not found route
+ * Routes
  */
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: `Route not found: ${req.originalUrl}`,
-  });
-});
+app.use("/api/auth", authRoutes);
+
+/**
+ * 404 Handler
+ */
+app.use(notFound);
+
+/**
+ * Global Error Handler
+ */
+app.use(errorHandler);
 
 export default app;
