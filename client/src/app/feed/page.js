@@ -1,38 +1,77 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useDispatch } from "react-redux";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-import { logout } from "@/features/auth/authService";
-import { clearCredentials } from "@/features/auth/authSlice";
+import CreatePost from "@/components/common/CreatePost";
+import PostCard from "@/components/common/PostCard";
+
+import {
+    selectPosts,
+    selectPostsLoading,
+    setPosts,
+    setPostsLoading,
+} from "@/features/posts/postSlice";
+
+const DUMMY_POSTS = [
+    {
+        _id: "1",
+        author: { _id: "u1" },
+        profile: { firstName: "John", lastName: "Doe", avatar: null },
+        text: "This is a sample post",
+        image: null,
+        visibility: "public",
+        likes: [],
+        createdAt: new Date().toISOString(),
+    },
+    {
+        _id: "2",
+        author: { _id: "u2" },
+        profile: { firstName: "John", lastName: "Doe", avatar: null },
+        text: "This is a sample post",
+        image: null,
+        visibility: "public",
+        likes: [],
+        createdAt: new Date().toISOString(),
+    },
+];
 
 export default function FeedPage() {
-  const router = useRouter();
-  const dispatch = useDispatch();
+    const dispatch = useDispatch();
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error(error);
-    } finally {
-      dispatch(clearCredentials());
-      router.push("/login");
-      router.refresh();
-    }
-  };
+    const posts = useSelector(selectPosts);
+    const isLoading = useSelector(selectPostsLoading);
 
-  return (
-    <div className="container py-5">
-      <h1 className="mb-4">Feed Page</h1>
+    useEffect(() => {
+        dispatch(setPostsLoading(true));
 
-      <button
-        type="button"
-        className="btn btn-danger"
-        onClick={handleLogout}
-      >
-        Logout
-      </button>
-    </div>
-  );
+        // Phase 1: static data
+        dispatch(setPosts(DUMMY_POSTS));
+
+        // TODO Phase 2:
+        // const posts = await postService.getPosts();
+        // dispatch(setPosts(posts));
+
+        dispatch(setPostsLoading(false));
+    }, [dispatch]);
+
+    return (
+        <>
+            <CreatePost />
+
+            {isLoading && (
+                <div className="text-center _mar_t20 _mar_b20">
+                    <div className="spinner-border" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            )}
+
+            {!isLoading && posts.map((post) => (
+                <PostCard key={post._id} post={post} />
+            ))}
+
+            <div className="py-4"></div>
+        </>
+    );
 }
